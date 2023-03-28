@@ -13,42 +13,12 @@
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
 		<PackageReference Include="NUnit" Version="3.13.3" />
 		<PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
-		<PackageReference Include="ShtrihM.SbpPoint.Gateway.Api.Clients" Version="1.0.0.1819" />
+		<PackageReference Include="ShtrihM.SbpPoint.Gateway.Api.Clients" Version="1.2.0.1820" />
 		<PackageReference Include="ShtrihM.Wattle3.Testing" Version="3.0.0.37088" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="emerald.examples.integrator.https.organization.cer">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="emerald.examples.integrator.https.organization.pfx">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="emerald.examples.integrator.signature.organization.cer">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="emerald.examples.integrator.signature.organization.pfx">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="emerald.integrator.signature.organization.pfx">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="root.emerald.examples.integrator.https.organization.cer">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="root.emerald.examples.integrator.https.organization.pfx">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="root.emerald.examples.integrator.signature.organization.cer">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="root.emerald.examples.integrator.signature.organization.pfx">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="root.emerald.integrator.server.cer">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="root.examples.emerald.integrator.https.organization.cer">
+	  <None Update="root.sbppoint.gateway.server.cer">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

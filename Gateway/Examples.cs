@@ -5,40 +5,32 @@ using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using ShtrihM.Emerald.Integrator.Api.Clients;
-using ShtrihM.Emerald.Integrator.Api.Common.Dtos.Documents;
-using ShtrihM.Emerald.Integrator.Api.Common;
-using ShtrihM.Wattle3.Testing;
+using ShtrihM.SbpPoint.Gateway.Api.Clients;
 using ShtrihM.Wattle3.Json.Extensions;
-using System.Security.Cryptography.Pkcs;
-using System.Text;
 using RestSharp;
-using ShtrihM.Emerald.Integrator.Api.Common.Dtos.Documents.DocumentEvents;
-using ShtrihM.Emerald.Integrator.Api.Common.Dtos.Tokens;
+using ShtrihM.SbpPoint.Processing.Api.Common;
+using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.AutomationDynamicQrs;
+using ShtrihM.Wattle3.Testing;
+using ShtrihM.Wattle3.Common.Exceptions;
 
-namespace ShtrihM.Emerald.Examples.Integrator;
+namespace ShtrihM.SbpPoint.Examples.Gateway;
 
 /// <summary>
-/// Примеры использования API интеграции внешних организаций.
+/// Примеры использования API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
 /// </summary>
 [TestFixture]
 [SuppressMessage("ReSharper", "PrivateFieldCanBeConvertedToLocalVariable")]
 public class Examples
 {
     /// <summary>
-    /// Базовый URL API облачного транспорта.
+    /// Базовый URL API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
     /// </summary>
-    private static readonly string BaseAddress = $"https://localhost:{Common.Constants.DefaultPortHttpsApiIntegrator}";
+    private static readonly string BaseAddress = $"https://localhost:{Common.Constants.DefaultPortApiGateway}";
 
     /// <summary>
-    /// Приватный сертификат клиента для HTTPS.
+    /// Ключ API.
     /// </summary>
-    private readonly X509Certificate2 m_clientCertificateHttps;
-
-    /// <summary>
-    /// Приватный сертификат клиента для создания электронной подписи.
-    /// </summary>
-    private readonly X509Certificate2 m_clientCertificateSignature;
+    private static readonly string ApiKey = "ApiKey";
 
     /// <summary>
     /// Публичный корневой сертификат сервера для HTTPS.
@@ -52,16 +44,10 @@ public class Examples
 
     public Examples()
     {
-        var certificateHttpsBytes = File.ReadAllBytes(@"emerald.examples.integrator.https.organization.pfx");
-        m_clientCertificateHttps = new X509Certificate2(certificateHttpsBytes, "password");
-
-        var certificateSignatureBytes = File.ReadAllBytes(@"emerald.examples.integrator.signature.organization.pfx");
-        m_clientCertificateSignature = new X509Certificate2(certificateSignatureBytes, "password");
-
-        var rootServerCertificateHttpsBytes = File.ReadAllBytes(@"root.emerald.integrator.server.cer");
+        var rootServerCertificateHttpsBytes = File.ReadAllBytes(@"root.sbppoint.gateway.server.cer");
         m_rootServerCertificateHttps = new X509Certificate2(rootServerCertificateHttpsBytes);
 
-        var handler = Client.NewHttpClientHandler(m_clientCertificateHttps, m_rootServerCertificateHttps, true);
+        var handler = GatewayClient.NewHttpClientHandler(m_rootServerCertificateHttps, true);
         m_restClient =
             new RestClient(
                 useClientFactory: true,
@@ -74,7 +60,7 @@ public class Examples
                 configureSerialization:
                 config =>
                 {
-                    Client.UpdateSerializerConfig(config);
+                    GatewayClient.UpdateSerializerConfig(config);
                 });
     }
 
@@ -132,8 +118,6 @@ public class Examples
                     },
             };
 
-        handler.ClientCertificates.Add(m_clientCertificateHttps);
-
         var restClient =
             new RestClient(
                 useClientFactory: true,
@@ -146,10 +130,10 @@ public class Examples
                 configureSerialization:
                 config =>
                 {
-                    Client.UpdateSerializerConfig(config);
+                    GatewayClient.UpdateSerializerConfig(config);
                 });
 
-        using var client = new Client(restClient, true);
+        using var client = new GatewayClient(restClient, true);
         var description = await client.GetDescriptionAsync();
 
         Assert.IsNotNull(description);
@@ -162,7 +146,7 @@ public class Examples
     [Test]
     public async Task Example_GetDescriptionAsync()
     {
-        using var client = new Client(m_restClient);
+        using var client = new GatewayClient(m_restClient);
         var description = await client.GetDescriptionAsync();
 
         Assert.IsNotNull(description);
@@ -170,174 +154,22 @@ public class Examples
     }
 
     /// <summary>
-    /// Отправить документ организаци - создание услуги токена (банковская карта) - билет с ограниченным сроком действия.
+    /// Создание программируемого динамического QR-кода.
     /// </summary>
     [Test]
-    public async Task Example_AddDocumentAsync_DocumentTokenBankCardCreateTicketTimeLimited()
+    public void Example_PaymentsAutomationDynamicQrsCreateAsync()
     {
-        var document =
-            new DocumentTokenBankCardCreateTicketTimeLimited
-            {
-                CreateDate = DateTimeOffset.Now,
-                DateBegin = DateTime.Now.Date,
-                DateEnd = DateTime.Now.Date.AddDays(30),
-                Key = Guid.NewGuid(),
-                PanHash = ProviderRandomValues.GetBytes(FieldsConstants.Sha256Length),
-                Type = 1,
-            };
-
-        using var client = new Client(m_restClient);
-        var documentResult = await client.AddDocumentAsync(document, m_clientCertificateSignature);
-
-        Assert.IsNotNull(documentResult);
-        Console.WriteLine(documentResult.ToJsonText(true));
-
-        Assert.IsFalse(documentResult.Successful);
-        Assert.IsNotNull(documentResult.Id);
-        Assert.IsNotNull(documentResult.Events);
-        Assert.AreEqual(1, documentResult.Events.Count);
-
-        var @event = documentResult.Events[0] as DocumentEventTokenNotFound;
-        Assert.IsNotNull(@event);
-        Assert.AreEqual("По PAN банковской карты не найден токен", @event.Reason);
-    }
-
-    /// <summary>
-    /// Отправить документ организаци - создание услуги токена (банковская карта) - билет с ограниченным сроком действия и ограниченным числом поездок.
-    /// </summary>
-    [Test]
-    public async Task Example_AddDocumentAsync_DocumentTokenBankCardCreateTicketTimeLimitedTravelsLimited()
-    {
-        var document =
-            new DocumentTokenBankCardCreateTicketTimeLimitedTravelsLimited
-            {
-                CreateDate = DateTimeOffset.Now,
-                DateBegin = DateTime.Now.Date,
-                DateEnd = DateTime.Now.Date.AddDays(30),
-                Key = Guid.NewGuid(),
-                PanHash = ProviderRandomValues.GetBytes(FieldsConstants.Sha256Length),
-                Type = 1,
-                Count = 12,
-            };
-
-        using var client = new Client(m_restClient);
-        var documentResult = await client.AddDocumentAsync(document, m_clientCertificateSignature);
-
-        Assert.IsNotNull(documentResult);
-        Console.WriteLine(documentResult.ToJsonText(true));
-
-        Assert.IsFalse(documentResult.Successful);
-        Assert.IsNotNull(documentResult.Id);
-        Assert.IsNotNull(documentResult.Events);
-        Assert.AreEqual(1, documentResult.Events.Count);
-
-        var @event = documentResult.Events[0] as DocumentEventTokenNotFound;
-        Assert.IsNotNull(@event);
-        Assert.AreEqual("По PAN банковской карты не найден токен", @event.Reason);
-    }
-
-    /// <summary>
-    /// Отправить документ организаци.
-    /// Электронная подпись создаётся вручную.
-    /// </summary>
-    [Test]
-    public async Task Example_AddDocumentAsync_Mnual_Signature()
-    {
-        var document =
-            new DocumentTokenBankCardCreateTicketTimeLimited
-            {
-                CreateDate = DateTimeOffset.Now,
-                DateBegin = DateTime.Now.Date,
-                DateEnd = DateTime.Now.Date.AddDays(30),
-                Key = Guid.NewGuid(),
-                PanHash = ProviderRandomValues.GetBytes(FieldsConstants.Sha256Length),
-                Type = 1,
-            };
-        var documentText = document.ToJsonText(true);
-        var documentBytes = Encoding.UTF8.GetBytes(documentText);
-        var contentInfo = new ContentInfo(documentBytes);
-        var signedCms = new SignedCms(contentInfo, false);
-        var signer =
-            new CmsSigner(SubjectIdentifierType.SubjectKeyIdentifier, m_clientCertificateSignature)
-            {
-                IncludeOption = X509IncludeOption.WholeChain 
-            };
-        signedCms.ComputeSignature(signer);
-        var message = signedCms.Encode();
-        var documentMessage =
-            new DocumentMessage
-            {
-                Message = message,
-            };
-
-        using var client = new Client(m_restClient);
-        var documentResult = await client.AddDocumentAsync(documentMessage);
-
-        Assert.IsNotNull(documentResult);
-        Console.WriteLine(documentResult.ToJsonText(true));
-
-        Assert.IsFalse(documentResult.Successful);
-        Assert.IsNotNull(documentResult.Id);
-        Assert.IsNotNull(documentResult.Events);
-        Assert.AreEqual(1, documentResult.Events.Count);
-
-        var @event = documentResult.Events[0] as DocumentEventTokenNotFound;
-        Assert.IsNotNull(@event);
-        Assert.AreEqual("По PAN банковской карты не найден токен", @event.Reason);
-    }
-
-    /// <summary>
-    /// Отправить документ организаци.
-    /// Электронная подпись создаётся автоматически.
-    /// </summary>
-    [Test]
-    public async Task Example_AddDocumentAsync_Auto_Signature()
-    {
-        var document =
-            new DocumentTokenBankCardCreateTicketTimeLimited
-            {
-                CreateDate = DateTimeOffset.Now,
-                DateBegin = DateTime.Now.Date,
-                DateEnd = DateTime.Now.Date.AddDays(30),
-                Key = Guid.NewGuid(),
-                PanHash = ProviderRandomValues.GetBytes(FieldsConstants.Sha256Length),
-                Type = 1,
-            };
-
-        using var client = new Client(m_restClient);
-        var documentResult = await client.AddDocumentAsync(document, m_clientCertificateSignature);
-
-        Assert.IsNotNull(documentResult);
-        Console.WriteLine(documentResult.ToJsonText(true));
-
-        Assert.IsFalse(documentResult.Successful);
-        Assert.IsNotNull(documentResult.Id);
-        Assert.IsNotNull(documentResult.Events);
-        Assert.AreEqual(1, documentResult.Events.Count);
-
-        var @event = documentResult.Events[0] as DocumentEventTokenNotFound;
-        Assert.IsNotNull(@event);
-        Assert.AreEqual("По PAN банковской карты не найден токен", @event.Reason);
-    }
-
-    /// <summary>
-    /// Проверить существование PAN банковской карты.
-    /// </summary>
-    [Test]
-    public async Task Example_TokenBankCardExistsAsync()
-    {
-        using var client = new Client(m_restClient);
-        var existsResult =
-            await client.TokenBankCardExistsAsync(
-                new BankCardPanInfo
-                {
-                    PanHash = new byte[FieldsConstants.Sha256Length],
-                });
-
-        Assert.IsNotNull(existsResult);
-        Console.WriteLine(existsResult.ToJsonText(true));
-
-        Assert.IsFalse(existsResult.IsExists);
-        Assert.AreEqual("По PAN банковской карты не найден токен", existsResult.Reason);
+        using var client = new GatewayClient(m_restClient);
+        var workflowException =
+            Assert.ThrowsAsync<WorkflowException>(
+                async () => await client.PaymentsAutomationDynamicQrsCreateAsync(
+                    ApiKey,
+                    new AutomationDynamicQrCreate
+                    {
+                        Amount = 1000,
+                        AutoCancelMinutes = 5,
+                        Purpose = "Тест (10 рублей)"
+                    }));
+        Assert.AreEqual(workflowerro, workflowException!.Code);
     }
 }
