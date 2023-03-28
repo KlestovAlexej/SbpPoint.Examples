@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
@@ -10,7 +9,6 @@ using ShtrihM.Wattle3.Json.Extensions;
 using RestSharp;
 using ShtrihM.SbpPoint.Processing.Api.Common;
 using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.AutomationDynamicQrs;
-using ShtrihM.Wattle3.Testing;
 using ShtrihM.Wattle3.Common.Exceptions;
 
 namespace ShtrihM.SbpPoint.Examples.Gateway;
@@ -19,7 +17,6 @@ namespace ShtrihM.SbpPoint.Examples.Gateway;
 /// Примеры использования API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
 /// </summary>
 [TestFixture]
-[SuppressMessage("ReSharper", "PrivateFieldCanBeConvertedToLocalVariable")]
 public class Examples
 {
     /// <summary>
