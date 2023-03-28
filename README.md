@@ -1,5 +1,3 @@
-# SbpPoint.Examples
-
 Примеры использования API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
 
 Клиенты API написан 100% на [C#](https://ru.wikipedia.org/wiki/C_Sharp) под [.NET 7](https://devblogs.microsoft.com/dotnet/announcing-dotnet-7/).

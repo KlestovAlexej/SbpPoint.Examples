@@ -170,6 +170,7 @@ public class Examples
                         AutoCancelMinutes = 5,
                         Purpose = "Тест (10 рублей)"
                     }));
-        Assert.AreEqual(workflowerro, workflowException!.Code);
+        Assert.AreEqual(WorkflowErrorCodes.AccessDenied, workflowException!.Code);
+        Assert.AreEqual("Нарушен формат ключа API", workflowException.Details, workflowException.Details);
     }
 }
