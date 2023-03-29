@@ -27,7 +27,7 @@ public class Examples
     /// <summary>
     /// Ключ API.
     /// </summary>
-    private static readonly string ApiKey = "rKOy8yWvn6Fw2QrkFboKe9ju37dm9DEZc+zx21X+5WC0uddlZiiuwqVPeys0bpke";
+    private static readonly string ApiKey = @"7r8TCjiXMq5XYoqdOMl10jGGskj0QUNbJFkdYW+3IPQlMhUDD1harHUf0NRIGqJB";
 
     /// <summary>
     /// Публичный корневой сертификат сервера для HTTPS.
