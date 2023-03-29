@@ -22,12 +22,12 @@ public class Examples
     /// <summary>
     /// Базовый URL API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
     /// </summary>
-    private static readonly string BaseAddress = $"https://localhost:{Common.Constants.DefaultPortApiGateway}";
+    private static readonly string BaseAddress = "https://localhost:9904/";
 
     /// <summary>
     /// Ключ API.
     /// </summary>
-    private static readonly string ApiKey = "ApiKey";
+    private static readonly string ApiKey = "g51jh/cAvQvlwyqx4m6wHEaGw7ulBn5Xg65sjqrzSgcwRfPe9QlCWkCPwfAB3A0U";
 
     /// <summary>
     /// Публичный корневой сертификат сервера для HTTPS.
@@ -168,6 +168,6 @@ public class Examples
                         Purpose = "Тест (10 рублей)"
                     }));
         Assert.AreEqual(WorkflowErrorCodes.AccessDenied, workflowException!.Code);
-        Assert.AreEqual("Нарушен формат ключа API", workflowException.Details, workflowException.Details);
+        Assert.AreEqual("Истёк срок годности ключа API", workflowException.Details, workflowException.Details);
     }
 }
