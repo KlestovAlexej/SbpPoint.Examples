@@ -10,6 +10,7 @@ using RestSharp;
 using ShtrihM.SbpPoint.Processing.Api.Common;
 using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.AutomationDynamicQrs;
 using ShtrihM.Wattle3.Common.Exceptions;
+using ShtrihM.Wattle3.Utils;
 
 namespace ShtrihM.SbpPoint.Examples.Gateway;
 
@@ -22,7 +23,7 @@ public class Examples
     /// <summary>
     /// Базовый URL API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
     /// </summary>
-    private static readonly string BaseAddress = "https://localhost:9904/";
+    private static readonly string BaseAddress = "https://46.28.89.35:9904";
 
     /// <summary>
     /// Ключ API.
@@ -148,6 +149,34 @@ public class Examples
 
         Assert.IsNotNull(description);
         Console.WriteLine(description.ToJsonText(true));
+    }
+
+    /// <summary>
+    /// Чтение публичной информации ключа API.
+    /// </summary>
+    [Test]
+    public void Example_SupportApiKeysReadAsync_Public()
+    {
+        using var client = new GatewayClient(m_restClient);
+        var info = client.SupportApiKeysReadAsync(ApiKey).SafeGetResult();
+        Assert.IsNotNull(info);
+        Console.WriteLine(info.ToJsonText(true));
+    }
+
+    /// <summary>
+    /// Чтение приватной информации ключа API.
+    /// </summary>
+    [Test]
+    public void Example_SupportApiKeysReadAsync_Private()
+    {
+        using var client = new GatewayClient(m_restClient);
+        var workflowException =
+            Assert.ThrowsAsync<WorkflowException>(
+                async () => await client.SupportApiKeysReadAsync(
+                    ApiKey,
+                    ApiKey));
+        Assert.AreEqual(WorkflowErrorCodes.AccessDenied, workflowException!.Code);
+        Assert.AreEqual("Истёк срок годности ключа API", workflowException.Details, workflowException.Details);
     }
 
     /// <summary>
