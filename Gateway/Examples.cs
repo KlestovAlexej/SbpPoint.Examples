@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
@@ -8,9 +9,15 @@ using ShtrihM.SbpPoint.Gateway.Api.Clients;
 using ShtrihM.Wattle3.Json.Extensions;
 using RestSharp;
 using ShtrihM.SbpPoint.Processing.Api.Common;
+using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments;
 using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.AutomationDynamicQrs;
 using ShtrihM.Wattle3.Common.Exceptions;
+using ShtrihM.Wattle3.Testing;
 using ShtrihM.Wattle3.Utils;
+using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.DynamicQrs;
+using System.Diagnostics;
+using QRCoder;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ShtrihM.SbpPoint.Examples.Gateway;
 
@@ -18,17 +25,19 @@ namespace ShtrihM.SbpPoint.Examples.Gateway;
 /// Примеры использования API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
 /// </summary>
 [TestFixture]
+[SuppressMessage("ReSharper", "AccessToDisposedClosure")]
+[SuppressMessage("ReSharper", "AccessToModifiedClosure")]
 public class Examples
 {
     /// <summary>
     /// Базовый URL API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
     /// </summary>
-    private static readonly string BaseAddress = "https://46.28.89.35:9904";
+    private static readonly string BaseAddress = "https://46.28.89.35:9904"; //"https://46.28.89.35:9904";
 
     /// <summary>
     /// Ключ API.
     /// </summary>
-    private static readonly string ApiKey = @"oURrKUxC0chJQC18j+Qz8v1fzVUsTyHo6P/DC+mbcC0gTN/ivO3xdZPJzucMNUrL";
+    private static readonly string ApiKey = @"EN1-1:dUamn36gDpNhojzQA8Lhycr3Av0+y7ii9d0ZLUCkuWfUEwADWwAAE/MjhYlGLDGa";
 
     /// <summary>
     /// Публичный корневой сертификат сервера для HTTPS.
@@ -40,8 +49,12 @@ public class Examples
     /// </summary>
     private readonly RestClient m_restClient;
 
+    private readonly string m_tempPath;
+
     public Examples()
     {
+        m_tempPath = Path.GetTempPath();
+
         var rootServerCertificateHttpsBytes = File.ReadAllBytes(@"root.sbppoint.gateway.server.cer");
         m_rootServerCertificateHttps = new X509Certificate2(rootServerCertificateHttpsBytes);
 
@@ -56,10 +69,7 @@ public class Examples
                     options.ConfigureMessageHandler = _ => handler;
                 },
                 configureSerialization:
-                config =>
-                {
-                    GatewayClient.UpdateSerializerConfig(config);
-                });
+                config => { GatewayClient.UpdateSerializerConfig(config); });
     }
 
     /// <summary>
@@ -126,10 +136,7 @@ public class Examples
                     options.ConfigureMessageHandler = _ => handler;
                 },
                 configureSerialization:
-                config =>
-                {
-                    GatewayClient.UpdateSerializerConfig(config);
-                });
+                config => { GatewayClient.UpdateSerializerConfig(config); });
 
         using var client = new GatewayClient(restClient, true);
         var description = await client.GetDescriptionAsync();
@@ -145,6 +152,7 @@ public class Examples
     public async Task Example_GetDescriptionAsync()
     {
         using var client = new GatewayClient(m_restClient);
+
         var description = await client.GetDescriptionAsync();
 
         Assert.IsNotNull(description);
@@ -155,10 +163,11 @@ public class Examples
     /// Чтение публичной информации ключа API.
     /// </summary>
     [Test]
-    public void Example_SupportApiKeysReadAsync_Public()
+    public async Task Example_SupportApiKeysReadAsync_Public()
     {
         using var client = new GatewayClient(m_restClient);
-        var info = client.SupportApiKeysReadAsync(ApiKey).SafeGetResult();
+
+        var info = await client.SupportApiKeysReadAsync(ApiKey);
         Assert.IsNotNull(info);
         Console.WriteLine(info.ToJsonText(true));
     }
@@ -167,36 +176,145 @@ public class Examples
     /// Чтение приватной информации ключа API.
     /// </summary>
     [Test]
-    public void Example_SupportApiKeysReadAsync_Private()
+    public async Task Example_SupportApiKeysReadAsync_Private()
     {
         using var client = new GatewayClient(m_restClient);
-        var workflowException =
-            Assert.ThrowsAsync<WorkflowException>(
-                async () => await client.SupportApiKeysReadAsync(
-                    ApiKey,
-                    ApiKey));
-        Assert.AreEqual(WorkflowErrorCodes.AccessDenied, workflowException!.Code);
-        Assert.AreEqual("Истёк срок годности ключа API", workflowException.Details, workflowException.Details);
+
+        var info = await client.SupportApiKeysReadAsync(ApiKey, ApiKey);
+        Assert.IsNotNull(info);
+        Console.WriteLine(info.ToJsonText(true));
     }
 
     /// <summary>
-    /// Создание программируемого динамического QR-кода.
+    /// Программируемый динамический QR-код.
+    /// Ручная отмена платежа.
     /// </summary>
     [Test]
-    public void Example_PaymentsAutomationDynamicQrsCreateAsync()
+    public async Task Example_Payment_AutomationDynamicQr_Cancel_Manual()
     {
         using var client = new GatewayClient(m_restClient);
-        var workflowException =
-            Assert.ThrowsAsync<WorkflowException>(
-                async () => await client.PaymentsAutomationDynamicQrsCreateAsync(
-                    ApiKey,
-                    new AutomationDynamicQrCreate
-                    {
-                        Amount = 1000,
-                        AutoCancelMinutes = 5,
-                        Purpose = "Тест (10 рублей)"
-                    }));
-        Assert.AreEqual(WorkflowErrorCodes.AccessDenied, workflowException!.Code);
-        Assert.AreEqual("Истёк срок годности ключа API", workflowException.Details, workflowException.Details);
+
+        // Создание платежа.
+        var payment = await client.PaymentsAutomationDynamicQrsCreateAsync(
+            ApiKey,
+            new AutomationDynamicQrCreate
+            {
+                Amount = 1000,
+                AutoCancelMinutes = 5,
+                Purpose = "Тест (10 рублей)"
+            });
+
+        // Отмена платежа.
+        await client.PaymentsAutomationDynamicQrsCancelAsync(
+            ApiKey,
+            new AutomationDynamicQrCancel
+            {
+                Id = payment.Id,
+            });
+
+        // Запрос статуса платежа.
+        payment = await client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id);
+        Assert.IsNotNull(payment);
+        Console.WriteLine(payment.ToJsonText(true));
+
+        Assert.IsTrue(payment.Status.IsFinal);
+        Assert.IsFalse(payment.Status.IsSuccess);
+        Assert.AreEqual(PaymentStatus.Canceled, payment.Status.Status);
+    }
+
+    /// <summary>
+    /// Программируемый динамический QR-код.
+    /// Автоматическая отмена платежа.
+    /// </summary>
+    [Test]
+    public async Task Example_Payment_AutomationDynamicQr_Cancel_Auto()
+    {
+        using var client = new GatewayClient(m_restClient);
+
+        // Создание платежа.
+        var payment = await client.PaymentsAutomationDynamicQrsCreateAsync(
+            ApiKey,
+            new AutomationDynamicQrCreate
+            {
+                Amount = 1000,
+                AutoCancelMinutes = 1,
+                Purpose = "Тест (10 рублей)"
+            });
+
+        // Ждём завершения платежа - примерно 1 минута.
+        WaitHelpers.TimeOut(
+            () => client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id).SafeGetResult().Status.IsFinal,
+            TimeSpan.FromMinutes(5));
+
+        // Запрос статуса платежа.
+        payment = await client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id);
+        Assert.IsNotNull(payment);
+        Console.WriteLine(payment.ToJsonText(true));
+
+        Assert.IsTrue(payment.Status.IsFinal);
+        Assert.IsFalse(payment.Status.IsSuccess);
+        Assert.AreEqual(PaymentStatus.Rejected, payment.Status.Status);
+    }
+
+    /// <summary>
+    /// Программируемый динамический QR-код.
+    /// Оплата платежа.
+    /// </summary>
+    [Test]
+    [Explicit]
+    public async Task Example_Payment_AutomationDynamicQr_Image()
+    {
+        using var client = new GatewayClient(m_restClient);
+
+        // Создание платежа.
+        var payment = await client.PaymentsAutomationDynamicQrsCreateAsync(
+            ApiKey,
+            new AutomationDynamicQrCreate
+            {
+                Amount = 1000,
+                AutoCancelMinutes = 5,
+                Purpose = "Тест (10 рублей)"
+            });
+
+        ShowQrImage(payment.Link);
+
+        // Ждём завершения платежа - примерно 5 минут.
+        WaitHelpers.TimeOut(
+            () => client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id).SafeGetResult().Status.IsFinal,
+            TimeSpan.FromMinutes(5));
+
+        // Запрос статуса платежа.
+        payment = await client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id);
+        Assert.IsNotNull(payment);
+        Console.WriteLine(payment.ToJsonText(true));
+
+        Assert.IsTrue(payment.Status.IsFinal);
+
+        DeleteQrImage();
+    }
+
+    private void DeleteQrImage()
+    {
+        var fileNmae = Path.Combine(m_tempPath, "QR.png");
+        if (File.Exists(fileNmae))
+        {
+            File.Delete(fileNmae);
+        }
+    }
+
+    private void ShowQrImage(string data)
+    {
+        var qrGenerator = new QRCodeGenerator();
+        var qrCodeData = qrGenerator.CreateQrCode(data, QRCodeGenerator.ECCLevel.Q);
+        var qrCode = new PngByteQRCode(qrCodeData);
+        var qrCodeAsPngByteArr = qrCode.GetGraphic(20);
+        var fileNmae = Path.Combine(m_tempPath, "QR.png");
+        if (File.Exists(fileNmae))
+        {
+            File.Delete(fileNmae);
+        }
+        File.WriteAllBytes(fileNmae, qrCodeAsPngByteArr);
+        Console.WriteLine(fileNmae);
+        Process.Start("explorer.exe", fileNmae);
     }
 }
