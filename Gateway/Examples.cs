@@ -8,16 +8,12 @@ using NUnit.Framework;
 using ShtrihM.SbpPoint.Gateway.Api.Clients;
 using ShtrihM.Wattle3.Json.Extensions;
 using RestSharp;
-using ShtrihM.SbpPoint.Processing.Api.Common;
 using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments;
 using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.AutomationDynamicQrs;
-using ShtrihM.Wattle3.Common.Exceptions;
 using ShtrihM.Wattle3.Testing;
 using ShtrihM.Wattle3.Utils;
-using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.DynamicQrs;
 using System.Diagnostics;
 using QRCoder;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ShtrihM.SbpPoint.Examples.Gateway;
 
@@ -32,12 +28,12 @@ public class Examples
     /// <summary>
     /// Базовый URL API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
     /// </summary>
-    private static readonly string BaseAddress = "https://46.28.89.35:9904"; //"https://46.28.89.35:9904";
+    private static readonly string BaseAddress = "https://46.28.89.35:9904";
 
     /// <summary>
     /// Ключ API.
     /// </summary>
-    private static readonly string ApiKey = @"EN1-1:dUamn36gDpNhojzQA8Lhycr3Av0+y7ii9d0ZLUCkuWfUEwADWwAAE/MjhYlGLDGa";
+    private static readonly string ApiKey = @"EN1-1:0gegr8DhTZpQSUSzgX5GfSDsb5gJ5xWyYSsIGQ5wuHGlrzeqvBD8y9jBEAAEkXeS";
 
     /// <summary>
     /// Публичный корневой сертификат сервера для HTTPS.
