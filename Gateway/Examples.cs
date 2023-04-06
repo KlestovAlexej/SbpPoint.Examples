@@ -277,7 +277,7 @@ public class Examples
         // Ждём завершения платежа - примерно 5 минут.
         WaitHelpers.TimeOut(
             () => client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id).SafeGetResult().Status.IsFinal,
-            TimeSpan.FromMinutes(5));
+            TimeSpan.FromMinutes(10));
 
         // Запрос статуса платежа.
         payment = await client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id);
