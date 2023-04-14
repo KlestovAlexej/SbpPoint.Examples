@@ -297,7 +297,7 @@ public class Examples
     /// </summary>
     [Test]
     [Explicit]
-    public async Task Example_Refund()
+    public async Task Example_Payment_Refund()
     {
         using var client = new GatewayClient(m_restClient);
 
