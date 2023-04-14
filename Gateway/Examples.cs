@@ -14,6 +14,7 @@ using ShtrihM.Wattle3.Testing;
 using ShtrihM.Wattle3.Utils;
 using System.Diagnostics;
 using QRCoder;
+using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.Refund;
 
 namespace ShtrihM.SbpPoint.Examples.Gateway;
 
@@ -33,7 +34,7 @@ public class Examples
     /// <summary>
     /// Ключ API.
     /// </summary>
-    private static readonly string ApiKey = @"EN1-1:0gegr8DhTZpQSUSzgX5GfSDsb5gJ5xWyYSsIGQ5wuHGlrzeqvBD8y9jBEAAEkXeS";
+    private static readonly string ApiKey = @"EN1-1:CAe3ey2KdneylslaZHKD7k2vDV4mGxEcBUBnyfG77RfEl+lRiYjTNlL7J+Y+Sg7B";
 
     /// <summary>
     /// Публичный корневой сертификат сервера для HTTPS.
@@ -287,6 +288,64 @@ public class Examples
         Assert.IsTrue(payment.Status.IsFinal);
 
         DeleteQrImage();
+    }
+
+    /// <summary>
+    /// Программируемый динамический QR-код.
+    /// Оплата платежа.
+    /// Возврат платежа.
+    /// </summary>
+    [Test]
+    [Explicit]
+    public async Task Example_Refund()
+    {
+        using var client = new GatewayClient(m_restClient);
+
+        // Создание платежа.
+        var payment = await client.PaymentsAutomationDynamicQrsCreateAsync(
+            ApiKey,
+            new AutomationDynamicQrCreate
+            {
+                Amount = 1000,
+                AutoCancelMinutes = 5,
+                Purpose = "Тест (10 рублей)"
+            });
+
+        ShowQrImage(payment.Link);
+
+        // Ждём завершения платежа - примерно 5 минут.
+        WaitHelpers.TimeOut(
+            () => client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id).SafeGetResult().Status.IsFinal,
+            TimeSpan.FromMinutes(10));
+
+        // Запрос статуса платежа.
+        payment = await client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id);
+        Assert.IsNotNull(payment);
+        Console.WriteLine(payment.ToJsonText(true));
+
+        Assert.IsTrue(payment.Status.IsFinal);
+
+        DeleteQrImage();
+
+        // Возврат платежа.
+        var refund = await client.PaymentsRefundsRefundAsync(
+            ApiKey,
+            new RefundCreate
+            {
+                Amount = 1000,
+                Id = payment.Id,
+                Purpose = "Тест",
+            });
+
+        // Ждём завершения возврата.
+        WaitHelpers.TimeOut(
+            () => client.PaymentsRefundsReadAsync(ApiKey, refund.Id).SafeGetResult().IsFinal,
+            TimeSpan.FromMinutes(10));
+
+        // Запрос статуса возврата.
+        refund = await client.PaymentsRefundsReadAsync(ApiKey, refund.Id);
+        Assert.IsNotNull(refund);
+        Console.WriteLine(refund.ToJsonText(true));
     }
 
     private void DeleteQrImage()
