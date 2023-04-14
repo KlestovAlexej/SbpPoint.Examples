@@ -321,7 +321,7 @@ public class Examples
         // Запрос статуса платежа.
         payment = await client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id);
         Assert.IsNotNull(payment);
-        Console.WriteLine(payment.ToJsonText(true));
+        Assert.IsTrue(payment.Status.IsSuccess);
 
         Assert.IsTrue(payment.Status.IsFinal);
 
@@ -345,6 +345,7 @@ public class Examples
         // Запрос статуса возврата.
         refund = await client.PaymentsRefundsReadAsync(ApiKey, refund.Id);
         Assert.IsNotNull(refund);
+        Assert.IsTrue(refund.IsSuccess);
         Console.WriteLine(refund.ToJsonText(true));
     }
 
