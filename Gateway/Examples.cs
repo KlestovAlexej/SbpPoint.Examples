@@ -324,8 +324,6 @@ public class Examples
         Console.WriteLine(payment.ToJsonText(true));
         Assert.IsTrue(payment.Status.IsSuccess);
 
-        Assert.IsTrue(payment.Status.IsFinal);
-
         DeleteQrImage();
 
         // Возврат платежа.
@@ -348,6 +346,89 @@ public class Examples
         Assert.IsNotNull(refund);
         Console.WriteLine(refund.ToJsonText(true));
         Assert.IsTrue(refund.IsSuccess);
+    }
+
+    /// <summary>
+    /// Программируемый динамический QR-код.
+    /// Оплата платежа.
+    /// Возврат платежа частями.
+    /// </summary>
+    [Test]
+    [Explicit]
+    public async Task Example_Payment_Refund_Partial()
+    {
+        using var client = new GatewayClient(m_restClient);
+
+        // Создание платежа.
+        var payment = await client.PaymentsAutomationDynamicQrsCreateAsync(
+            ApiKey,
+            new AutomationDynamicQrCreate
+            {
+                Amount = 1000,
+                AutoCancelMinutes = 5,
+                Purpose = "Тест (10 рублей)"
+            });
+
+        ShowQrImage(payment.Link);
+
+        // Ждём завершения платежа - примерно 5 минут.
+        WaitHelpers.TimeOut(
+            () => client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id).SafeGetResult().Status.IsFinal,
+            TimeSpan.FromMinutes(10));
+
+        // Запрос статуса платежа.
+        payment = await client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id);
+        Assert.IsNotNull(payment);
+        Console.WriteLine(payment.ToJsonText(true));
+        Assert.IsTrue(payment.Status.IsSuccess);
+
+        DeleteQrImage();
+
+        {
+            // Возврат платежа.
+            var refund = await client.PaymentsRefundsRefundAsync(
+                ApiKey,
+                new RefundCreate
+                {
+                    Amount = 500,
+                    Id = payment.Id,
+                    Purpose = "Тест",
+                });
+
+            // Ждём завершения возврата.
+            WaitHelpers.TimeOut(
+                () => client.PaymentsRefundsReadAsync(ApiKey, refund.Id).SafeGetResult().IsFinal,
+                TimeSpan.FromMinutes(10));
+
+            // Запрос статуса возврата.
+            refund = await client.PaymentsRefundsReadAsync(ApiKey, refund.Id);
+            Assert.IsNotNull(refund);
+            Console.WriteLine(refund.ToJsonText(true));
+            Assert.IsTrue(refund.IsSuccess);
+        }
+
+        {
+            // Возврат платежа.
+            var refund = await client.PaymentsRefundsRefundAsync(
+                ApiKey,
+                new RefundCreate
+                {
+                    Amount = 500,
+                    Id = payment.Id,
+                    Purpose = "Тест",
+                });
+
+            // Ждём завершения возврата.
+            WaitHelpers.TimeOut(
+                () => client.PaymentsRefundsReadAsync(ApiKey, refund.Id).SafeGetResult().IsFinal,
+                TimeSpan.FromMinutes(10));
+
+            // Запрос статуса возврата.
+            refund = await client.PaymentsRefundsReadAsync(ApiKey, refund.Id);
+            Assert.IsNotNull(refund);
+            Console.WriteLine(refund.ToJsonText(true));
+            Assert.IsTrue(refund.IsSuccess);
+        }
     }
 
     private void DeleteQrImage()
