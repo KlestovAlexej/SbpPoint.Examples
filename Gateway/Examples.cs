@@ -14,7 +14,9 @@ using ShtrihM.Wattle3.Testing;
 using ShtrihM.Wattle3.Utils;
 using System.Diagnostics;
 using QRCoder;
+using ShtrihM.SbpPoint.Processing.Api.Common;
 using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.Refund;
+using ShtrihM.Wattle3.Common.Exceptions;
 
 namespace ShtrihM.SbpPoint.Examples.Gateway;
 
@@ -34,7 +36,7 @@ public class Examples
     /// <summary>
     /// Ключ API.
     /// </summary>
-    private static readonly string ApiKey = @"EN1-1:CAe3ey2KdneylslaZHKD7k2vDV4mGxEcBUBnyfG77RfEl+lRiYjTNlL7J+Y+Sg7B";
+    private static readonly string ApiKey = @"EN1-1:KrgbOVGmAFav6AdMWgbxSI1F5IHd+yD/CvbFLBsfXrZZPTRPtwNkJ5+Cw1mhRLk0";
 
     /// <summary>
     /// Публичный корневой сертификат сервера для HTTPS.
@@ -323,8 +325,23 @@ public class Examples
         Assert.IsNotNull(payment);
         Console.WriteLine(payment.ToJsonText(true));
         Assert.IsTrue(payment.Status.IsSuccess);
+        Assert.IsFalse(payment.HasRefunds);
+        Assert.AreEqual(0, payment.TotalRefundedAmount);
 
         DeleteQrImage();
+
+        // Возврат платежа на сумму большую суммы платежа.
+        var workflowException =
+            Assert.ThrowsAsync<WorkflowException>(
+                async () => await client.PaymentsRefundsRefundAsync(
+                    ApiKey,
+                    new RefundCreate
+                    {
+                        Amount = 5555,
+                        Id = payment.Id,
+                        Purpose = "Тест",
+                    }));
+        Assert.AreEqual(WorkflowErrorCodes.RefundAmountOvertopPaymentAmount, workflowException!.Code);
 
         // Возврат платежа.
         var refund = await client.PaymentsRefundsRefundAsync(
@@ -346,6 +363,14 @@ public class Examples
         Assert.IsNotNull(refund);
         Console.WriteLine(refund.ToJsonText(true));
         Assert.IsTrue(refund.IsSuccess);
+
+        // Запрос статуса платежа.
+        payment = await client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id);
+        Assert.IsNotNull(payment);
+        Console.WriteLine(payment.ToJsonText(true));
+        Assert.IsTrue(payment.Status.IsSuccess);
+        Assert.IsTrue(payment.HasRefunds);
+        Assert.AreEqual(1000, payment.TotalRefundedAmount);
     }
 
     /// <summary>
@@ -381,6 +406,8 @@ public class Examples
         Assert.IsNotNull(payment);
         Console.WriteLine(payment.ToJsonText(true));
         Assert.IsTrue(payment.Status.IsSuccess);
+        Assert.IsFalse(payment.HasRefunds);
+        Assert.AreEqual(0, payment.TotalRefundedAmount);
 
         DeleteQrImage();
 
@@ -429,6 +456,27 @@ public class Examples
             Console.WriteLine(refund.ToJsonText(true));
             Assert.IsTrue(refund.IsSuccess);
         }
+
+        // Возврат платежа уже полность возвращенного.
+        var workflowException =
+            Assert.ThrowsAsync<WorkflowException>(
+                async () => await client.PaymentsRefundsRefundAsync(
+                    ApiKey,
+                    new RefundCreate
+                    {
+                        Amount = 1000,
+                        Id = payment.Id,
+                        Purpose = "Тест",
+                    }));
+        Assert.AreEqual(WorkflowErrorCodes.RefundAmountOvertopPaymentAllowedRefundAmount, workflowException!.Code);
+
+        // Запрос статуса платежа.
+        payment = await client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id);
+        Assert.IsNotNull(payment);
+        Console.WriteLine(payment.ToJsonText(true));
+        Assert.IsTrue(payment.Status.IsSuccess);
+        Assert.IsTrue(payment.HasRefunds);
+        Assert.AreEqual(1000, payment.TotalRefundedAmount);
     }
 
     private void DeleteQrImage()
