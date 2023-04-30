@@ -204,17 +204,17 @@ public class Examples
             });
 
         // Отмена платежа.
-        await client.PaymentsAutomationDynamicQrsCancelAsync(
-            ApiKey,
-            new AutomationDynamicQrCancel
-            {
-                Id = payment.Id,
-            });
-
-        // Ждём завершения платежа - примерно 1 минута.
-        WaitHelpers.TimeOut(
-            () => client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id).SafeGetResult().Status.IsFinal,
-            TimeSpan.FromMinutes(5));
+        payment =
+            await client.PaymentsAutomationDynamicQrsCancelAsync(
+                ApiKey,
+                new AutomationDynamicQrCancel
+                {
+                    Id = payment.Id,
+                });
+        Assert.IsNotNull(payment);
+        Assert.IsTrue(payment.Status.IsFinal);
+        Assert.IsFalse(payment.Status.IsSuccess);
+        Assert.AreEqual(PaymentStatus.Canceled, payment.Status.Status);
 
         // Запрос статуса платежа.
         payment = await client.PaymentsAutomationDynamicQrsReadAsync(ApiKey, payment.Id);
