@@ -36,7 +36,7 @@ public class Examples
     /// <summary>
     /// Ключ API.
     /// </summary>
-    private static readonly string ApiKey = @"EN1-1:mh6XgE4ZYW+Aulsv04YEa4892CH+9K+Chg2OgvZsKaqiXKaLV4pT1Y2MYTIcoeUX";
+    private static readonly string ApiKey = @"EN1-3600001:AmrWbKRHq1Bt7OPOo4Pu89i8AAmkyf0jW9rwajJpSXwdTJOxTvN58GKqST1dWyJe";
 
     /// <summary>
     /// Публичный корневой сертификат сервера для HTTPS.
@@ -75,7 +75,7 @@ public class Examples
     /// Создание <see cref="RestClient"/> руками.
     /// </summary>
     [Test]
-    public async Task Example_Manual_RestClient()
+    public async Task Manual_RestClient()
     {
         var customTrustStore =
             new X509Certificate2Collection
@@ -151,7 +151,7 @@ public class Examples
     /// Получить описание сервера.
     /// </summary>
     [Test]
-    public async Task Example_GetDescriptionAsync()
+    public async Task GetDescriptionAsync()
     {
         using var client = new GatewayClient(m_restClient);
 
@@ -165,7 +165,7 @@ public class Examples
     /// Чтение публичной информации ключа API.
     /// </summary>
     [Test]
-    public async Task Example_SupportApiKeysReadAsync_Public()
+    public async Task SupportApiKeysReadAsync_Public()
     {
         using var client = new GatewayClient(m_restClient);
 
@@ -178,7 +178,7 @@ public class Examples
     /// Чтение приватной информации ключа API.
     /// </summary>
     [Test]
-    public async Task Example_SupportApiKeysReadAsync_Private()
+    public async Task SupportApiKeysReadAsync_Private()
     {
         using var client = new GatewayClient(m_restClient);
 
@@ -192,7 +192,7 @@ public class Examples
     /// Ручная отмена платежа.
     /// </summary>
     [Test]
-    public async Task Example_Payment_AutomationDynamicQr_Cancel_Manual()
+    public async Task Payment_AutomationDynamicQr_Cancel_Manual()
     {
         using var client = new GatewayClient(m_restClient);
 
@@ -234,7 +234,7 @@ public class Examples
     /// Автоматическая отмена платежа.
     /// </summary>
     [Test]
-    public async Task Example_Payment_AutomationDynamicQr_Cancel_Auto()
+    public async Task Payment_AutomationDynamicQr_Cancel_Auto()
     {
         using var client = new GatewayClient(m_restClient);
 
@@ -269,7 +269,7 @@ public class Examples
     /// </summary>
     [Test]
     [Explicit]
-    public async Task Example_Payment_AutomationDynamicQr_Image()
+    public async Task Payment_AutomationDynamicQr_Image()
     {
         using var client = new GatewayClient(m_restClient);
 
@@ -307,7 +307,7 @@ public class Examples
     /// </summary>
     [Test]
     [Explicit]
-    public async Task Example_Payment_Refund()
+    public async Task Payment_Refund()
     {
         using var client = new GatewayClient(m_restClient);
 
@@ -388,7 +388,7 @@ public class Examples
     /// </summary>
     [Test]
     [Explicit]
-    public async Task Example_Payment_Refund_Partial()
+    public async Task Payment_Refund_Partial()
     {
         using var client = new GatewayClient(m_restClient);
 
