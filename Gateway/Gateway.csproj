@@ -14,8 +14,8 @@
 		<PackageReference Include="NUnit" Version="3.13.3" />
 		<PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
 		<PackageReference Include="QRCoder" Version="1.4.3" />
-		<PackageReference Include="ShtrihM.SbpPoint.Gateway.Api.Clients" Version="1.3.0.2279" />
-		<PackageReference Include="ShtrihM.Wattle3.Testing" Version="3.0.0.37189" />
+		<PackageReference Include="ShtrihM.SbpPoint.Gateway.Api.Clients" Version="1.3.0.2320" />
+		<PackageReference Include="ShtrihM.Wattle3.Testing" Version="3.0.0.37190" />
 	</ItemGroup>
 
 	<ItemGroup>
