@@ -6,6 +6,15 @@
 
 ---
 
+Примеры демонструют :
+- [Создание](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/f09e5a64ee6b2a85b1fb5199de704f8085c1a7b3/Gateway/Examples.cs#L315) QR-Кода.
+- [Запрос статуса оплаты](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/f09e5a64ee6b2a85b1fb5199de704f8085c1a7b3/Gateway/Examples.cs#L332) QR-Кода.
+- [Возврат](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/f09e5a64ee6b2a85b1fb5199de704f8085c1a7b3/Gateway/Examples.cs#L355) денег оплаченного QR-Кода.
+- [Частичный возврат](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/f09e5a64ee6b2a85b1fb5199de704f8085c1a7b3/Gateway/Examples.cs#L424) денег оплаченного QR-Кода.
+- [Запрос статуса возврата](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/f09e5a64ee6b2a85b1fb5199de704f8085c1a7b3/Gateway/Examples.cs#L370) денег оплаченного QR-Кода.
+
+---
+
 Доступно [Swagger UI](https://46.28.89.35:9904/index.html) с описанием API.
 
 Клиент API написан 100% на [C#](https://ru.wikipedia.org/wiki/C_Sharp) под [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
