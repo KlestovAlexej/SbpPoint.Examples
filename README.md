@@ -14,8 +14,8 @@
 - [Возврат](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/f09e5a64ee6b2a85b1fb5199de704f8085c1a7b3/Gateway/Examples.cs#L355) денег оплаченного QR-Кода.
 - [Частичный возврат](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/f09e5a64ee6b2a85b1fb5199de704f8085c1a7b3/Gateway/Examples.cs#L424) денег оплаченного QR-Кода.
 - [Запрос статуса возврата](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/f09e5a64ee6b2a85b1fb5199de704f8085c1a7b3/Gateway/Examples.cs#L370) денег оплаченного QR-Кода.
-- Ручная [Отмена](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/a3d37499dc4e127fe747996c4ab504517d72ec05/Gateway/Examples.cs#L210) QR-Кода - **расширение функционала QR-кода и отсутствует у НСПК.**
-- Автоматическая по TTL [Отмена](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/a3d37499dc4e127fe747996c4ab504517d72ec05/Gateway/Examples.cs#L252) QR-Кода - **расширение функционала QR-кода и не полностью присутствует у НСПК.**
+- Ручная [отмена](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/a3d37499dc4e127fe747996c4ab504517d72ec05/Gateway/Examples.cs#L210) QR-Кода - **расширение функционала QR-кода и отсутствует у НСПК.**
+- Автоматическая [отмена](https://github.com/KlestovAlexej/SbpPoint.Examples/blob/a3d37499dc4e127fe747996c4ab504517d72ec05/Gateway/Examples.cs#L252) (по TTL) QR-Кода - **расширение функционала QR-кода и не полностью присутствует у НСПК.**
 
 ---
 
