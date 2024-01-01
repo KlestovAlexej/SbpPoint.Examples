@@ -25,4 +25,4 @@
 
 Пакеты **nuget** клиента начинаются с префикса [ShtrihM.SbpPoint.Gateway.Api.Clients](https://www.nuget.org/packages?q=ShtrihM.SbpPoint.Gateway.Api.Clients)
 
-Все примеры оформлены как [NUnit](https://nunit.org/)-тесты для запуска в ОС Windows из-под [Visual Studio 2022](https://visualstudio.microsoft.com/ru/vs/) (проверено на версии 17.8.1).
+Все примеры оформлены как [NUnit](https://nunit.org/)-тесты (проверено на [Visual Studio 2022](https://visualstudio.microsoft.com/ru/vs/) версии 17.8.1).
