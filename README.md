@@ -4,6 +4,8 @@
 
 При желании можно создать свой [Личный Кабинет](https://sbp.online) и создавать свои QR-коды принимать оплаты на свой реальный счёт.
 
+Пакеты nuget **.NET клиента** начинаются с префикса [ShtrihM.SbpPoint](https://www.nuget.org/packages?q=ShtrihM.SbpPoint)
+
 ---
 
 Примеры в файле [Examples.cs](/Gateway/Examples.cs).
