@@ -21,6 +21,12 @@
 
 ---
 
+В файле [ExamplesGatewayAdapter.cs](/Gateway/ExamplesGatewayAdapter.cs).
+
+Показаны примеры создания QR-кодов в терминах ПНКО «ЭЛПЛАТ».
+
+---
+
 Доступен [Swagger UI](https://46.28.89.35:9904/index.html) с описанием API.
 
 Клиент API написан 100% на [C#](https://ru.wikipedia.org/wiki/C_Sharp) под [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
