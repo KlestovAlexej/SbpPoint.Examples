@@ -36,7 +36,7 @@ public class Examples
     /// <summary>
     /// Ключ API.
     /// </summary>
-    private static readonly string ApiKey = @"EN200001-200001:ipCfH0UhtUXD/nkVUYYExNjkSd/a4vAtTSK4JEI2pNi0UK2RRpzL/fdNtPEmlCQD";
+    private static readonly string ApiKey = "EN200001-200001:ipCfH0UhtUXD/nkVUYYExNjkSd/a4vAtTSK4JEI2pNi0UK2RRpzL/fdNtPEmlCQD";
 
     /// <summary>
     /// Публичный корневой сертификат сервера для HTTPS.
@@ -54,7 +54,7 @@ public class Examples
     {
         m_tempPath = Path.GetTempPath();
 
-        var rootServerCertificateHttpsBytes = File.ReadAllBytes(@"root.sbppoint.gateway.server.cer");
+        var rootServerCertificateHttpsBytes = File.ReadAllBytes("root.sbppoint.gateway.server.cer");
         m_rootServerCertificateHttps = new X509Certificate2(rootServerCertificateHttpsBytes);
 
         var handler = GatewayClient.NewHttpClientHandler(m_rootServerCertificateHttps, true);
