@@ -11,11 +11,10 @@
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-		<PackageReference Include="NUnit" Version="3.14.0" />
 		<PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
 		<PackageReference Include="QRCoder" Version="1.4.3" />
-		<PackageReference Include="ShtrihM.SbpPoint.Gateway.Api.Clients" Version="1.6.0.2942" />
-		<PackageReference Include="ShtrihM.Wattle3.Testing" Version="3.8.0.37422" />
+		<PackageReference Include="ShtrihM.SbpPoint.Gateway.Api.Clients" Version="1.6.0.3565" />
+		<PackageReference Include="ShtrihM.Wattle3.Testing" Version="3.9.0.3482" />
 	</ItemGroup>
 
 	<ItemGroup>

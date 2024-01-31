@@ -14,7 +14,7 @@ using ShtrihM.Wattle3.Testing;
 using ShtrihM.Wattle3.Utils;
 using System.Diagnostics;
 using QRCoder;
-using ShtrihM.SbpPoint.Processing.Api.Common;
+using ShtrihM.SbpPoint.Api.Common;
 using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.Refund;
 using ShtrihM.Wattle3.Common.Exceptions;
 
