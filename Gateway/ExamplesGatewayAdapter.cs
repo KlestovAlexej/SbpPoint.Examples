@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
@@ -11,8 +10,6 @@ using ShtrihM.SbpPoint.Gateway.Adapter.Api.Common.Dtos.CommandReturns.QrDynamic;
 using ShtrihM.SbpPoint.Gateway.Adapter.Api.Common.Dtos.Commands.QrDynamic;
 using ShtrihM.Wattle3.Json.Extensions;
 using ShtrihM.Wattle3.Utils;
-using QRCoder;
-using System.Diagnostics;
 
 namespace ShtrihM.SbpPoint.Examples.Gateway;
 
@@ -20,48 +17,32 @@ namespace ShtrihM.SbpPoint.Examples.Gateway;
 /// Примеры использования API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
 /// </summary>
 [TestFixture]
-[SuppressMessage("ReSharper", "AccessToDisposedClosure")]
-[SuppressMessage("ReSharper", "AccessToModifiedClosure")]
-public class ExamplesGatewayAdapter
+public class ExamplesGatewayAdapter : BaseExamples
 {
-    /// <summary>
-    /// Базовый URL API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
-    /// </summary>
-    private static readonly string BaseAddress = "https://46.28.89.35:9961";
-
     /// <summary>
     /// Ключ API.
     /// </summary>
     private static readonly string ApiKey = "MxPnOqO92bqvtvz+h+Jq/qRAtPAKZ2c2y4hUca37gBZ4OwObpUlK0xFKFhlwz2BJ";
 
     /// <summary>
-    /// Публичный корневой сертификат сервера для HTTPS.
-    /// </summary>
-    private readonly X509Certificate2 m_rootServerCertificateHttps;
-
-    /// <summary>
     /// Настроенный клиент HTTPS.
     /// </summary>
     private readonly RestClient m_restClient;
 
-    private readonly string m_tempPath;
-
     public ExamplesGatewayAdapter()
     {
-        m_tempPath = Path.GetTempPath();
-
         var rootServerCertificateHttpsBytes = File.ReadAllBytes("ca.shtrihm.sbp.gateway.adapter.servers.cer");
-        m_rootServerCertificateHttps = new X509Certificate2(rootServerCertificateHttpsBytes);
+        var rootServerCertificateHttps = new X509Certificate2(rootServerCertificateHttpsBytes);
 
-        var handler = GatewayClient.NewHttpClientHandler(m_rootServerCertificateHttps, true);
         m_restClient =
             new RestClient(
                 useClientFactory: true,
                 configureRestClient:
                 options =>
                 {
-                    options.BaseUrl = new Uri(BaseAddress);
-                    options.ConfigureMessageHandler = _ => handler;
+                    options.BaseUrl = new Uri("https://46.28.89.35:9961");
+                    options.ConfigureMessageHandler =
+                        _ => GatewayClient.NewHttpClientHandler(rootServerCertificateHttps, true);
                 },
                 configureSerialization:
                 config => { GatewayClient.UpdateSerializerConfig(config); });
@@ -117,13 +98,8 @@ public class ExamplesGatewayAdapter
         QrDynamicWaitForEnd(client, qrDynamicStatusRead);
 
         // Проверка отмены динамического QR-кода
-        var commandReturn =
-            await client.CommandRunAsync(
-                    ApiKey,
-                    qrDynamicStatusRead);
-        var commandReturnQrDynamicStatusRead = commandReturn as GwCommandReturnQrDynamicStatusRead;
-        Assert.IsNotNull(commandReturnQrDynamicStatusRead);
-        Assert.AreEqual(GwQrDynamicPaymentStates.Rejected, commandReturnQrDynamicStatusRead.PaymentState);
+        var qrDynamicStatus = await QrDynamicStatusReadAsync(client, qrDynamicStatusRead);
+        Assert.AreEqual(GwQrDynamicPaymentStates.Rejected, qrDynamicStatus.PaymentState);
     }
 
     /// <summary>
@@ -140,10 +116,10 @@ public class ExamplesGatewayAdapter
 
         var qrDynamicCreateResult = await QrDynamicCreateAsync(client, qrDynamicCreate);
 
-        ShowQrImage(qrDynamicCreateResult.Data);
-
         try
         {
+            ShowQrImage(qrDynamicCreateResult.Data);
+
             var qrDynamicStatusRead =
                 new GwCommandQrDynamicStatusRead
                 {
@@ -152,14 +128,9 @@ public class ExamplesGatewayAdapter
 
             QrDynamicWaitForEnd(client, qrDynamicStatusRead);
 
-            // Проверка оплаты динамического QR-кода
-            var commandReturn =
-                await client.CommandRunAsync(
-                    ApiKey,
-                    qrDynamicStatusRead);
-            var commandReturnQrDynamicStatusRead = commandReturn as GwCommandReturnQrDynamicStatusRead;
-            Assert.IsNotNull(commandReturnQrDynamicStatusRead);
-            Assert.AreEqual(GwQrDynamicPaymentStates.Accepted, commandReturnQrDynamicStatusRead.PaymentState);
+            // Проверка успешной оплаты динамического QR-кода
+            var qrDynamicStatus = await QrDynamicStatusReadAsync(client, qrDynamicStatusRead);
+            Assert.AreEqual(GwQrDynamicPaymentStates.Accepted, qrDynamicStatus.PaymentState);
         }
         finally
         {
@@ -169,29 +140,22 @@ public class ExamplesGatewayAdapter
 
     #region Helpers
 
-    private void DeleteQrImage()
+    /// <summary>
+    /// Стение статуса динамического QR-кода.
+    /// </summary>
+    private async Task<GwCommandReturnQrDynamicStatusRead> QrDynamicStatusReadAsync(
+        IGatewayClient client,
+        GwCommandQrDynamicStatusRead qrDynamicStatusRead)
     {
-        var fileNmae = Path.Combine(m_tempPath, "QR.png");
-        if (File.Exists(fileNmae))
-        {
-            File.Delete(fileNmae);
-        }
-    }
+        var commandReturn =
+            await client.CommandRunAsync(
+                ApiKey,
+                qrDynamicStatusRead);
+        var commandReturnQrDynamicStatusRead = commandReturn as GwCommandReturnQrDynamicStatusRead;
+        Assert.IsNotNull(commandReturnQrDynamicStatusRead);
 
-    private void ShowQrImage(string data)
-    {
-        var qrGenerator = new QRCodeGenerator();
-        var qrCodeData = qrGenerator.CreateQrCode(data, QRCodeGenerator.ECCLevel.Q);
-        var qrCode = new PngByteQRCode(qrCodeData);
-        var qrCodeAsPngByteArr = qrCode.GetGraphic(20);
-        var fileNmae = Path.Combine(m_tempPath, "QR.png");
-        if (File.Exists(fileNmae))
-        {
-            File.Delete(fileNmae);
-        }
-        File.WriteAllBytes(fileNmae, qrCodeAsPngByteArr);
-        Console.WriteLine(fileNmae);
-        Process.Start("explorer.exe", fileNmae);
+
+        return commandReturnQrDynamicStatusRead;
     }
 
     /// <summary>
@@ -253,7 +217,9 @@ public class ExamplesGatewayAdapter
 
         if (false == commandIdempotentProcessingInfo.IsCompleted)
         {
-            // Дождаться завершения команды динамического QR-кода
+            Console.WriteLine("Сервер перегружен. Ждём завершение команды создания динамического QR-кода...");
+
+            // Дождаться завершения команды создания динамического QR-кода
             WaitHelpers.TimeOut(
                 () => client.CommandIdempotentRunAsync(
                         ApiKey,
@@ -262,7 +228,7 @@ public class ExamplesGatewayAdapter
                     .IsCompleted,
                 TimeSpan.FromMinutes(qrDynamicCreate.Ttl));
 
-            // Проверить завершение команды динамического QR-кода
+            // Проверить завершение команды создания динамического QR-кода
             commandIdempotentProcessingInfo =
                 await client.CommandIdempotentRunAsync(
                     ApiKey,

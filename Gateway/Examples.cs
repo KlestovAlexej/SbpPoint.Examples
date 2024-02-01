@@ -12,8 +12,6 @@ using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments;
 using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.AutomationDynamicQrs;
 using ShtrihM.Wattle3.Testing;
 using ShtrihM.Wattle3.Utils;
-using System.Diagnostics;
-using QRCoder;
 using ShtrihM.SbpPoint.Api.Common;
 using ShtrihM.SbpPoint.Processing.Api.Common.Dtos.Enterprises.Payments.Refund;
 using ShtrihM.Wattle3.Common.Exceptions;
@@ -26,7 +24,7 @@ namespace ShtrihM.SbpPoint.Examples.Gateway;
 [TestFixture]
 [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
 [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
-public class Examples
+public class Examples : BaseExamples
 {
     /// <summary>
     /// Базовый URL API шлюза сервера обеспечения взаимодействия с системой быстрых платежей.
@@ -48,12 +46,8 @@ public class Examples
     /// </summary>
     private readonly RestClient m_restClient;
 
-    private readonly string m_tempPath;
-
     public Examples()
     {
-        m_tempPath = Path.GetTempPath();
-
         var rootServerCertificateHttpsBytes = File.ReadAllBytes("root.sbppoint.gateway.server.cer");
         m_rootServerCertificateHttps = new X509Certificate2(rootServerCertificateHttpsBytes);
 
@@ -485,30 +479,5 @@ public class Examples
         Assert.IsTrue(payment.Status.IsSuccess);
         Assert.IsTrue(payment.HasRefunds);
         Assert.AreEqual(1000, payment.TotalRefundedAmount);
-    }
-
-    private void DeleteQrImage()
-    {
-        var fileNmae = Path.Combine(m_tempPath, "QR.png");
-        if (File.Exists(fileNmae))
-        {
-            File.Delete(fileNmae);
-        }
-    }
-
-    private void ShowQrImage(string data)
-    {
-        var qrGenerator = new QRCodeGenerator();
-        var qrCodeData = qrGenerator.CreateQrCode(data, QRCodeGenerator.ECCLevel.Q);
-        var qrCode = new PngByteQRCode(qrCodeData);
-        var qrCodeAsPngByteArr = qrCode.GetGraphic(20);
-        var fileNmae = Path.Combine(m_tempPath, "QR.png");
-        if (File.Exists(fileNmae))
-        {
-            File.Delete(fileNmae);
-        }
-        File.WriteAllBytes(fileNmae, qrCodeAsPngByteArr);
-        Console.WriteLine(fileNmae);
-        Process.Start("explorer.exe", fileNmae);
     }
 }
