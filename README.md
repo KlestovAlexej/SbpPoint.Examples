@@ -23,7 +23,7 @@
 
 В файле [ExamplesGatewayAdapter.cs](/Gateway/ExamplesGatewayAdapter.cs).
 
-Показаны примеры создания QR-кодов в терминах ПНКО «ЭЛПЛАТ».
+Показаны примеры создания QR-кодов в терминах [ПНКО «ЭЛПЛАТ»](https://www.el-plat.ru/).
 
 ---
 
