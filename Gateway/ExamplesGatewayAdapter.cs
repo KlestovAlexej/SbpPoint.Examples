@@ -22,7 +22,7 @@ public class ExamplesGatewayAdapter : BaseExamples
     /// <summary>
     /// Ключ API.
     /// </summary>
-    private static readonly string ApiKey = "MxPnOqO92bqvtvz+h+Jq/qRAtPAKZ2c2y4hUca37gBZ4OwObpUlK0xFKFhlwz2BJ";
+    private static readonly string ApiKey = "rScnOvVCybo0UYCsIxnQaRd8HXIAbQUH2EuGcthG7tcVhy4buPkmggcsD1l9VSR9";
 
     /// <summary>
     /// Настроенный клиент HTTPS.

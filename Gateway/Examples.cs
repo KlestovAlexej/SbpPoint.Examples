@@ -34,7 +34,7 @@ public class Examples : BaseExamples
     /// <summary>
     /// Ключ API.
     /// </summary>
-    private static readonly string ApiKey = "EN200001-200001:ipCfH0UhtUXD/nkVUYYExNjkSd/a4vAtTSK4JEI2pNi0UK2RRpzL/fdNtPEmlCQD";
+    private static readonly string ApiKey = "SrqhLSmIZgaoYU2Df+7SEYWa019UbAd8ai08vzxC8ptNhM8c/zkCY70JKI/hqUKZ";
 
     /// <summary>
     /// Публичный корневой сертификат сервера для HTTPS.
